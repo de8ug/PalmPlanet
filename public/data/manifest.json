@@ -1,0 +1,37 @@
+{
+  "preparedAt": "2026-10-28T09:35:41.746Z",
+  "sources": [
+    {
+      "id": "cities",
+      "name": "GeoNames cities15000",
+      "url": "https://download.geonames.org/export/dump/cities15000.zip",
+      "license": "CC BY 4.0",
+      "count": 34191,
+      "retrievedAt": "2026-10-28T09:17:50.710Z"
+    },
+    {
+      "id": "land",
+      "name": "Natural Earth 1:50m land",
+      "url": "https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_50m_land.geojson",
+      "blobSha": "c412c52b5286ba727dcb7047ecd6080bcbeb8298",
+      "license": "Public domain",
+      "retrievedAt": "2026-10-28T09:24:34.472Z"
+    },
+    {
+      "id": "earthquakes",
+      "name": "USGS M2.5+ past 7 days snapshot",
+      "url": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.geojson",
+      "license": "USGS public domain; see event contributors",
+      "count": 365,
+      "generatedAt": "2026-10-28T09:23:49.000Z",
+      "retrievedAt": "2026-10-28T09:24:19.824Z"
+    },
+    {
+      "id": "hands",
+      "name": "MediaPipe Hand Landmarker float16 v1",
+      "url": "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
+      "license": "Apache-2.0",
+      "retrievedAt": "2026-10-28T09:24:22.174Z"
+    }
+  ]
+}

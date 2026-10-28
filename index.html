@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#081e2a" />
+    <meta name="description" content="掌心星球 PalmPlanet：用双手探索真实地球，查找城市、测量距离、发现地球对面，观察真实地震记录。" />
+    <link rel="icon" href="./planet.svg" type="image/svg+xml" />
+    <title>掌心星球 PalmPlanet · 世界在你手中</title>
+  </head>
+  <body>
+    <div id="app">
+      <div id="globe" aria-label="可操作的三维地球"></div>
+      <header class="topbar">
+        <a class="brand" href="./" aria-label="掌心星球首页"><span class="brand-symbol">◒</span><span><strong>掌心星球</strong><small>PALMPLANET</small></span></a>
+        <div class="top-actions"><span class="edition">EARTH EXPLORER / 01</span><button class="subtle" id="sources-button">数据从哪里来 ↗</button></div>
+      </header>
+      <aside class="explorer" aria-label="探索工具">
+        <div class="panel-intro"><span class="eyebrow">让好奇心带路</span><h1>世界，<br>在你手中。</h1><p>转一转地球，打开一个为什么。</p></div>
+        <form id="search-form" role="search" autocomplete="off"><label class="sr-only" for="search">搜索城市，中英文均可</label><div class="search-wrap"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="想去哪里？搜索城市" maxlength="100" disabled /><kbd>↵</kbd></div></form>
+        <div id="search-results" class="search-results" aria-label="搜索结果" hidden></div>
+        <div id="panel-content" aria-live="polite"></div>
+        <div class="panel-footer"><span class="status-dot"></span><span id="data-status">正在准备真实地理数据…</span></div>
+      </aside>
+      <main class="world-ui" aria-label="地球控制">
+        <div class="world-top"><span class="live-tag"><i></i> OUR ONE & ONLY EARTH</span><div class="layer-controls"><label class="sr-only" for="layer">地球图层</label><select id="layer"><option value="earth">自然地球 · 本地底图</option><option value="streets">城市街道 · OpenStreetMap</option><option value="satellite">卫星观测 · NASA</option></select><label class="sr-only" for="satellite-date">卫星观测日期</label><input id="satellite-date" type="date" hidden /></div></div>
+        <div class="world-title"><span id="mode-eyebrow">一颗星球，无数个为什么</span><h2 id="world-heading">今天，想探索哪里？</h2></div>
+        <div class="map-controls"><button id="home" title="回到全球" aria-label="回到全球">⌂</button><button id="zoom-in" title="放大" aria-label="放大">＋</button><button id="zoom-out" title="缩小" aria-label="缩小">−</button><span class="north">N ↑</span></div>
+        <div id="globe-loading" class="globe-loading"><span class="loading-orbit"></span><p>把真实的地球带到眼前…</p></div>
+        <div id="map-note" class="map-note">本地概览底图 · 拉近后可切换城市街道</div>
+        <div id="hand-cursor" class="hand-cursor" hidden></div>
+        <div class="bottom-tools"><nav class="mode-nav" aria-label="探索方式"><button data-mode="explore" class="active" aria-pressed="true"><span>◎</span>自由探索</button><button data-mode="distance" aria-pressed="false"><span>⌁</span>量一量</button><button data-mode="antipode" aria-pressed="false"><span>◐</span>看对面</button><button data-mode="earthquakes" aria-pressed="false"><span>ϟ</span>找地震</button></nav><button id="camera-button" class="camera-button"><span>✋</span> 开启手势</button></div>
+        <div class="world-caption"><span id="view-height">从太空看地球</span><span>拖动旋转 · 滚轮缩放 · 点击选点</span></div>
+      </main>
+      <section id="camera-panel" class="camera-panel" hidden aria-label="手势控制"><div class="camera-panel-top"><strong>双手，让世界动起来</strong><button id="camera-stop" aria-label="关闭摄像头">×</button></div><video id="camera-video" autoplay playsinline muted></video><p id="gesture-status" role="status">正在准备手势识别…</p><div class="gesture-guide"><span>单手捏住移动 · 转动</span><span>双手捏住拉开 · 放大</span><span>短暂捏合后松开 · 选点</span></div><small>画面只在本机处理，不录制、不上传。</small></section>
+      <div id="toast" class="toast" role="status" hidden></div>
+      <dialog id="sources-dialog"><div class="dialog-top"><div><span class="eyebrow">真实世界，有据可查</span><h2>这颗地球的数据</h2></div><button id="sources-close" aria-label="关闭数据说明">×</button></div><div id="sources-content"></div></dialog>
+      <noscript>掌心星球需要启用 JavaScript 才能显示三维地球。</noscript>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
