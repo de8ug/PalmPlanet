@@ -1,5 +1,5 @@
 {
-  "preparedAt": "2026-10-28T09:35:41.746Z",
+  "preparedAt": "2026-10-28T09:46:54.518Z",
   "sources": [
     {
       "id": "cities",
@@ -22,9 +22,9 @@
       "name": "USGS M2.5+ past 7 days snapshot",
       "url": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.geojson",
       "license": "USGS public domain; see event contributors",
-      "count": 365,
-      "generatedAt": "2026-10-28T09:23:49.000Z",
-      "retrievedAt": "2026-10-28T09:24:19.824Z"
+      "count": 363,
+      "generatedAt": "2026-10-28T09:46:29.000Z",
+      "retrievedAt": "2026-10-28T09:46:54.517Z"
     },
     {
       "id": "hands",

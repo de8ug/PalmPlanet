@@ -1,0 +1,22 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PalmPlanet 本机手势模型检查</title><style>body{font:16px sans-serif;max-width:700px;margin:60px auto;padding:24px;color:#21433e;background:#f8f7ef}button{padding:14px 22px;background:#285d53;color:white;border:0;border-radius:10px}output{display:block;white-space:pre-wrap;line-height:1.9;margin-top:25px}</style><h1>本机手势模型检查</h1><p>仅使用一张程序绘制的空白图像，不开启摄像头，不上传图像。验证同源 WASM、模型加载和一次推理。</p><button id="run">检查模型</button><output id="result" role="status">尚未运行</output><script type="module">
+import { FilesetResolver, HandLandmarker } from '@mediapipe/tasks-vision';
+import { dataUrl } from '../../src/data.ts';
+const button = document.querySelector('#run'), output = document.querySelector('#result');
+button.addEventListener('click', async () => {
+  button.disabled = true; output.textContent = '正在加载本机模型…';
+  let tracker;
+  try {
+    const files = await FilesetResolver.forVisionTasks(dataUrl('vendor/mediapipe'));
+    let delegate = 'GPU';
+    try { tracker = await HandLandmarker.createFromOptions(files, { baseOptions: { modelAssetPath: dataUrl('models/hand_landmarker.task'), delegate }, runningMode: 'IMAGE', numHands: 2 }); }
+    catch { delegate = 'CPU'; tracker = await HandLandmarker.createFromOptions(files, { baseOptions: { modelAssetPath: dataUrl('models/hand_landmarker.task'), delegate }, runningMode: 'IMAGE', numHands: 2 }); }
+    const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 256;
+    const context = canvas.getContext('2d'); context.fillStyle = '#ffffff'; context.fillRect(0, 0, 256, 256);
+    const result = tracker.detect(canvas);
+    if (result.landmarks.length !== 0) throw new Error('空白图像产生了意外的手部检测结果');
+    output.textContent = `通过：同源 WASM 与模型已加载。\n执行方式：${delegate}\n空白图像检测到 0 只手，符合预期。\n这项检查不验证真人手势的稳定性。`;
+    output.dataset.passed = 'true';
+  } catch (error) { output.textContent = `失败：${error.message}`; output.dataset.passed = 'false'; }
+  finally { tracker?.close(); button.disabled = false; }
+});
+</script></html>

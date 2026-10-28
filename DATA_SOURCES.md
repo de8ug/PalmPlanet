@@ -9,7 +9,7 @@
 | 概览底图 | Natural Earth II，Cesium 包随附 · Natural Earth Public domain | 默认在本地提供；纹理层级最高 2，深度放大只能放大原图。影像内明暗代表地形晕渲。 |
 | 地震 | [USGS GeoJSON feeds](https://earthquake.usgs.gov/earthquakes/feed/v1.0/geojson.php) | 在线地址 `https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.geojson`。失败后读取 `earthquakes-snapshot.geojson`，明确显示快照与数据生成时间。USGS 自有数据通常为公共领域；每条记录附原始事件链接及贡献者信息。 |
 | 城市街道 | [OpenStreetMap](https://www.openstreetmap.org/copyright) · ODbL | 仅用户选中时按视野请求公共图块，保留署名。遵循 [图块使用政策](https://operations.osmfoundation.org/policies/tiles/)，不批量下载、不预取、不强制绕过缓存。公共服务器无可用性承诺；规模扩大应更换合适服务或自行托管。 |
-| 卫星观测 | [NASA GIBS](https://nasa-gibs.github.io/gibs-api-docs/) | MODIS Terra Corrected Reflectance True Color / EPSG:4326 / 250m 图层。默认昨日 UTC 日期，可选历史日期。受云、卫星过境、覆盖、处理延迟和服务状况影响；显示影像而非通过颜色反算科学数值。 |
+| 卫星观测 | [NASA GIBS](https://nasa-gibs.github.io/gibs-api-docs/) | MODIS Terra Corrected Reflectance True Color / EPSG:3857 / GoogleMapsCompatible_Level9（对应 250m 产品）图层。采用 NASA 官方 Cesium 示例的网格配置，避免把 GIBS 的特殊地理网格误当成普通经纬度网格。默认昨日 UTC 日期，可选历史日期。受云、卫星过境、覆盖、处理延迟和服务状况影响；显示影像而非通过颜色反算科学数值。 |
 | 距离 | [GeographicLib](https://github.com/geographiclib/geographiclib-js) · MIT | WGS84 椭球测地线。椭球表面最短路径，不包含道路、高程起伏或实际航线。数值按用途取整，算法精度不代表地点坐标精度。 |
 | 对跖点 | 数学计算 | 纬度取反，经度加 180° 后归一化。附近城市在当前城市库中查找，不等于最近聚落或具体地址。 |
 | 手势模型 | [MediaPipe Hand Landmarker](https://ai.google.dev/edge/mediapipe/solutions/vision/hand_landmarker) · Apache-2.0 | float16 v1 模型在 `public/models/`。运行资源从 npm 包复制到同源目录；帧在本机识别。模型和手势状态算法可能误判，需实机调校。 |

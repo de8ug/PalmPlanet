@@ -37,7 +37,7 @@ export class Globe {
   }
   async initialize() {
     const provider = await C.TileMapServiceImageryProvider.fromUrl(dataUrl('vendor/cesium/Assets/Textures/NaturalEarthII'), {
-      credit: new C.Credit('Natural Earth II · public domain'), maximumLevel: 2,
+      credit: new C.Credit('Natural Earth II · public domain', true), maximumLevel: 2,
     });
     this.viewer.imageryLayers.addImageryProvider(provider);
   }
@@ -94,13 +94,16 @@ export class Globe {
     let provider: C.ImageryProvider;
     if (layer === 'streets') {
       provider = new C.OpenStreetMapImageryProvider({ url: 'https://tile.openstreetmap.org/', maximumLevel: 19,
-        credit: new C.Credit('<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors · ODbL</a>') });
+        credit: new C.Credit('<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors · ODbL</a>', true) });
     } else {
-      provider = new C.UrlTemplateImageryProvider({
-        url: `https://gibs.earthdata.nasa.gov/wmts/epsg4326/best/MODIS_Terra_CorrectedReflectance_TrueColor/default/${date}/250m/{z}/{y}/{x}.jpg`,
-        tilingScheme: new C.GeographicTilingScheme(), maximumLevel: 8,
-        rectangle: C.Rectangle.fromDegrees(-180, -85, 180, 85),
-        credit: new C.Credit(`NASA GIBS · MODIS Terra · ${date}`),
+      // GIBS geographic grids are not Cesium's regular 2^n geographic grid.
+      // Use NASA's GoogleMapsCompatible matrix set to preserve exact alignment.
+      provider = new C.WebMapTileServiceImageryProvider({
+        url: `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/wmts.cgi?TIME=${date}`,
+        layer: 'MODIS_Terra_CorrectedReflectance_TrueColor', style: 'default', format: 'image/jpeg',
+        tileMatrixSetID: 'GoogleMapsCompatible_Level9', maximumLevel: 9, tileWidth: 256, tileHeight: 256,
+        tilingScheme: new C.WebMercatorTilingScheme(),
+        credit: new C.Credit(`NASA GIBS · MODIS Terra · ${date}`, true),
       });
     }
     let reported = false;

@@ -52,10 +52,10 @@ function syncGlobe() {
   else globe.showPlaces(current ? [current] : []);
 }
 const headings: Record<Mode, [string, string]> = {
-  explore: ['一颗星球，无数个为什么', '今天，想探索哪里？'],
-  distance: ['把遥远，变成看得见的距离', '世界到底有多大？'],
-  antipode: ['从一个坐标，找到另一个世界', '地球另一边，见。'],
-  earthquakes: ['真实观测 · USGS EARTHQUAKES', '地球，也在轻轻动。'],
+  explore: ['一颗星球，无数个为什么', '出发，去看看。'],
+  distance: ['把遥远，变成看得见的距离', '量一量世界。'],
+  antipode: ['从一个坐标，找到另一个世界', '地球另一边。'],
+  earthquakes: ['真实观测 · USGS EARTHQUAKES', '地球在震动。'],
 };
 function setMode(next: Mode) {
   mode = next;
