@@ -10,6 +10,7 @@
   </head>
   <body>
     <div id="app">
+      <div id="camera-backdrop" hidden aria-hidden="true"><video id="camera-background-video" autoplay playsinline muted></video></div>
       <div id="globe" aria-label="可操作的三维地球"></div>
       <header class="topbar">
         <a class="brand" href="./" aria-label="掌心星球首页"><span class="brand-symbol">◒</span><span><strong>掌心星球</strong><small>PALMPLANET</small></span></a>
@@ -23,7 +24,7 @@
         <div class="panel-footer"><span class="status-dot"></span><span id="data-status">正在准备真实地理数据…</span></div>
       </aside>
       <main class="world-ui" aria-label="地球控制">
-        <div class="world-top"><span class="live-tag"><i></i> OUR ONE & ONLY EARTH</span><div class="layer-controls"><label class="sr-only" for="layer">地球图层</label><select id="layer"><option value="earth">自然地球 · 本地底图</option><option value="streets">城市街道 · OpenStreetMap</option><option value="satellite">卫星观测 · NASA</option></select><label class="sr-only" for="satellite-date">卫星观测日期</label><input id="satellite-date" type="date" hidden /></div></div>
+        <div class="camera-preferences"><label>人物画面 <select id="camera-layout"><option value="window">小窗口</option><option value="background">全息背景</option></select></label><label id="opacity-control" hidden>地球不透明度 <input id="earth-opacity" type="range" min="30" max="100" value="72" aria-label="地球不透明度" /></label><span id="camera-layout-hint">开启手势后显示人物画面</span></div><div class="world-top"><span class="live-tag"><i></i> OUR ONE & ONLY EARTH</span><div class="layer-controls"><label class="sr-only" for="layer">地球图层</label><select id="layer"><option value="earth">自然地球 · 本地底图</option><option value="streets">城市街道 · OpenStreetMap</option><option value="satellite">卫星观测 · NASA</option></select><label class="sr-only" for="satellite-date">卫星观测日期</label><input id="satellite-date" type="date" hidden /></div></div>
         <div class="world-title"><span id="mode-eyebrow">一颗星球，无数个为什么</span><h2 id="world-heading">出发，去看看。</h2></div>
         <div class="map-controls"><button id="home" title="回到全球" aria-label="回到全球">⌂</button><button id="zoom-in" title="放大" aria-label="放大">＋</button><button id="zoom-out" title="缩小" aria-label="缩小">−</button><span class="north">N ↑</span></div>
         <div id="globe-loading" class="globe-loading"><span class="loading-orbit"></span><p>把真实的地球带到眼前…</p></div>
@@ -32,7 +33,7 @@
         <div class="bottom-tools"><nav class="mode-nav" aria-label="探索方式"><button data-mode="explore" class="active" aria-pressed="true"><span>◎</span>自由探索</button><button data-mode="distance" aria-pressed="false"><span>⌁</span>量一量</button><button data-mode="antipode" aria-pressed="false"><span>◐</span>看对面</button><button data-mode="earthquakes" aria-pressed="false"><span>ϟ</span>找地震</button></nav><button id="camera-button" class="camera-button"><span>✋</span> 开启手势</button></div>
         <div class="world-caption"><span id="view-height">从太空看地球</span><span>拖动旋转 · 滚轮缩放 · 点击选点</span></div>
       </main>
-      <section id="camera-panel" class="camera-panel" hidden aria-label="手势控制"><div class="camera-panel-top"><strong>双手，让世界动起来</strong><button id="camera-stop" aria-label="关闭摄像头">×</button></div><video id="camera-video" autoplay playsinline muted></video><p id="gesture-status" role="status">正在准备手势识别…</p><div class="gesture-guide"><span>单手捏住移动 · 转动</span><span>双手捏住拉开 · 放大</span><span>短暂捏合后松开 · 选点</span></div><small>画面只在本机处理，不录制、不上传。</small></section>
+      <section id="camera-panel" class="camera-panel" hidden aria-label="手势控制"><div class="camera-panel-top"><strong>双手，让世界动起来</strong><button id="camera-stop" aria-label="关闭摄像头">×</button></div><video id="camera-video" autoplay playsinline muted></video><p id="gesture-status" role="status">正在准备手势识别…</p><div class="gesture-guide"><span>单手捏住移动 · 转动</span><span>双手捏住拉开 · 放大</span><span>短暂捏合后松开 · 选点</span></div><small>可在画面上方切换小窗或全息背景。画面只在本机处理，不录制、不上传。</small></section>
       <div id="toast" class="toast" role="status" hidden></div>
       <dialog id="sources-dialog"><div class="dialog-top"><div><span class="eyebrow">真实世界，有据可查</span><h2>这颗地球的数据</h2></div><button id="sources-close" aria-label="关闭数据说明">×</button></div><div id="sources-content"></div></dialog>
       <noscript>掌心星球需要启用 JavaScript 才能显示三维地球。</noscript>

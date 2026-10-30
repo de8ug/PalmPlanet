@@ -31,3 +31,12 @@ Validated in the Codex in-app browser, with both a 1280 × 720 desktop viewport 
 ## Repeatable model check
 
 Run the dev server and open `/tests/browser/hand-model.html`. The explicit check button loads the local WASM and model, runs inference on a generated blank image, and releases the model. It never asks for a webcam. This page is a developer diagnostic and is not an entry point in the production build.
+
+# City guides and camera layouts — 2026-10-30
+
+- `npm test`: 18 tests pass, including identity-based city matching, nearby article validation, encyclopedia network failure/cancellation, single-stream camera presentation/cleanup, and pointer mapping through object-fit cover cropping.
+- `npm run build`: TypeScript and production build pass.
+- Browser: Beijing city introduction, Forbidden City and Temple of Heaven cards display with source links; selecting Forbidden City flies to its coordinates and enables OSM streets.
+- Browser: a developer-only synthetic canvas video (no webcam) is attached to an iframe of the real application using `tests/browser/camera-layout.html`. Background mode displays the synthetic figure behind the translucent globe; switching to window mode hides the backdrop, and stopping the synthetic stream clears the background. Human camera frames were neither captured nor saved.
+- Real seated camera use still needs parent/child trial. This feature composites video and globe; it does not perform person segmentation or VR spatial tracking.
+- Six cities have bundled introductory guides. Other cities require the explicit nearby encyclopedia query and remain subject to Wikipedia availability. Nearby encyclopedia entries are not a popularity ranking or a comprehensive attraction directory.

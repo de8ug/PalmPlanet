@@ -7,6 +7,9 @@ import { antipode, cityPlace, coordinates, distanceKm, formatKm, isLand, nearest
 import type { Land } from './geo';
 import type { CityRow, Manifest, Mode, Place, Quake, QuakeData } from './types';
 import { GestureController } from './gestures';
+import { CameraPresentation, coverPoint } from './camera-presentation';
+import { cityGuides, offlineGuide, nearbyArticles } from './city-guides';
+import type { CityGuide, Landmark } from './city-guides';
 
 const $ = <T extends HTMLElement = HTMLElement>(selector: string) => document.querySelector<T>(selector)!;
 const escapeHTML = (value: unknown) => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]!));
@@ -20,6 +23,32 @@ let earthquakeData: QuakeData | undefined, chosenQuake: Quake | undefined, minMa
 let fetchingQuakes = false, quakeFailed = false, globe: Globe | undefined;
 let toastTimer = 0, suggestions: CityRow[] = [], searchTimer = 0;
 let cameraOn = false;
+let referenceCity: Place | undefined, referenceDistance = 0, guide: CityGuide | undefined;
+let nearby: Landmark[] = [], nearbyState: 'idle' | 'loading' | 'done' = 'idle';
+let articleRequest: AbortController | undefined, selectedLandmark: Landmark | undefined;
+function resetCityInfo(place: Place) {
+  articleRequest?.abort(); articleRequest = undefined;
+  nearby = []; nearbyState = 'idle'; selectedLandmark = undefined;
+  const city = typeof place.id === 'number' ? { place, km: 0 } : nearestCity(place, cities);
+  referenceCity = city && city.km <= 30 ? city.place : undefined;
+  referenceDistance = city?.km ?? 0;
+  guide = referenceCity ? offlineGuide(referenceCity) : undefined;
+  if (!guide && typeof place.id !== 'number') {
+    const candidate = cityGuides.map(g => ({ guide: g, km: distanceKm(place, g) })).filter(g => g.km <= 20).sort((a, b) => a.km - b.km)[0];
+    if (candidate) {
+      const row = cities.find(row => row[0] === candidate.guide.cityId);
+      if (row) { referenceCity = cityPlace(row); referenceDistance = candidate.km; guide = candidate.guide; }
+    }
+  }
+}
+function cityInfoHTML() {
+  const spots = guide?.landmarks ?? nearby;
+  return `<section class="city-guide"><div class="section-label"><span>${guide ? '认识这座城市' : '附近有什么'}</span><span>↗</span></div>
+  ${referenceCity ? `<h3>${escapeHTML(referenceCity.name)}</h3><small>${referenceDistance > 0.05 ? `附近城市参考 · 距选点约 ${formatKm(referenceDistance)} km` : 'GeoNames 城市参考点'}</small>` : '<p class="body-copy">这里暂未关联到城市。选点坐标保持不变。</p>'}
+  ${guide ? `<p class="city-summary">${escapeHTML(guide.summary)}</p><a class="guide-source" href="${escapeHTML(guide.url)}" target="_blank" rel="noopener noreferrer">城市百科来源 ↗</a><h4>著名景点 · 选一个去看看</h4>` : `<p class="body-copy">${referenceCity ? '这座城市暂未收录本地简介。可以联网查附近的百科地点。' : '可以联网查找选点附近 10 公里内的百科地点。'}</p><button class="secondary nearby-button" data-action="load-nearby" ${nearbyState === 'loading' ? 'disabled' : ''}>${nearbyState === 'loading' ? '正在读取百科资料…' : '联网查附近资料 ↗'}</button>${nearbyState === 'done' && !nearby.length ? '<p class="accuracy-note">暂未获取到资料，可能是网络不可用或附近没有百科条目。可重新尝试，或搜索北京、上海、东京、伦敦、悉尼、巴黎。</p>' : ''}${nearby.length ? '<h4>附近百科地点 · 不代表景点排名</h4>' : ''}`}
+  <div class="landmark-list">${spots.map((spot, i) => `<article class="landmark-card ${selectedLandmark?.name === spot.name ? 'selected' : ''}"><button data-landmark="${i}"><span>${String(i + 1).padStart(2, '0')}</span><strong>${escapeHTML(spot.name)}</strong><span>↗</span></button><p>${escapeHTML(spot.summary)}</p><a href="${escapeHTML(spot.url)}" target="_blank" rel="noopener noreferrer">百科来源 ↗</a></article>`).join('')}</div>
+  ${guide ? `<p class="accuracy-note">Wikipedia 贡献者 · CC BY-SA 4.0 · 本地资料核对于 ${guide.checkedAt} · 简介为人工整理，坐标来自百科，仅作位置参考；地图不包含景点实景或三维建筑。</p>` : '<p class="accuracy-note">百科原文可能为中文或英文，内容与坐标采用 CC BY-SA。只有点击查询时才会向 Wikipedia 发送参考位置（约 0.001°）。</p>'}</section>`;
+}
 
 function toast(message: string) {
   $('#toast').textContent = message; $('#toast').hidden = false;
@@ -31,7 +60,7 @@ function placeBox(place: Place, prefix = '') {
 function render() {
   const content = $('#panel-content');
   if (mode === 'explore') {
-    content.innerHTML = `<div class="section-label"><span>01 / 自由探索</span><span>↗</span></div>${current ? `${placeBox(current)}<div class="fact-card"><span class="tiny-label">你选中的这一点</span><h3>${land ? isLand(current, land) ? '脚下是陆地。' : '这里是一片水域。' : '正在读取海陆数据'}</h3><p>真实经纬度，把世界上的位置连接起来。</p></div><div class="button-row"><button class="primary" data-action="look-opposite">看看它的对面 ↗</button><button class="secondary" data-action="use-start">从这里量距离</button></div><button class="text-button" data-action="fly-close">拉近看看这个位置 ↓</button><p class="accuracy-note">海陆判断来自简化海岸线，近岸和小岛可能有误差。拉近后可切换城市街道。</p>` : `<h3 class="prompt-title">好奇心的第一站，<br>由你来选。</h3><p class="body-copy">搜索一座城市，或者直接点一点地球。每个位置，都能成为一次发现的起点。</p><div class="quick-places"><button data-query="北京">北京 ↗</button><button data-query="东京">东京 ↗</button><button data-query="London">伦敦 ↗</button><button data-query="Sydney">悉尼 ↗</button></div><div class="question-card"><span>今天的小问题</span><p>如果一直往前走，<br>会不会回到出发的地方？</p><small>转一转地球，先想想看。</small></div>`}`;
+    content.innerHTML = `<div class="section-label"><span>01 / 自由探索</span><span>↗</span></div>${current ? `${placeBox(current)}${cityInfoHTML()}<div class="fact-card"><span class="tiny-label">你选中的这一点</span><h3>${land ? isLand(current, land) ? '脚下是陆地。' : '这里是一片水域。' : '正在读取海陆数据'}</h3><p>真实经纬度，把世界上的位置连接起来。</p></div><div class="button-row"><button class="primary" data-action="look-opposite">看看它的对面 ↗</button><button class="secondary" data-action="use-start">从这里量距离</button></div><button class="text-button" data-action="fly-close">拉近看看这个位置 ↓</button><p class="accuracy-note">海陆判断来自简化海岸线，近岸和小岛可能有误差。拉近后可切换城市街道。</p>` : `<h3 class="prompt-title">好奇心的第一站，<br>由你来选。</h3><p class="body-copy">搜索一座城市，或者直接点一点地球。每个位置，都能成为一次发现的起点。</p><div class="quick-places"><button data-query="北京">北京 ↗</button><button data-query="东京">东京 ↗</button><button data-query="London">伦敦 ↗</button><button data-query="Sydney">悉尼 ↗</button></div><div class="question-card"><span>今天的小问题</span><p>如果一直往前走，<br>会不会回到出发的地方？</p><small>转一转地球，先想想看。</small></div>`}`;
   } else if (mode === 'distance') {
     content.innerHTML = `<div class="section-label"><span>02 / 量一量世界</span><span>⌁</span></div><h3 class="prompt-title">从这里，到那里。</h3><p class="body-copy">搜索城市或点击地球，依次选择起点 A 和终点 B。</p><div class="endpoints">${endpoints[0] ? placeBox(endpoints[0], 'A') : '<div class="empty-place"><span>A</span>先选一个出发地</div>'}<div class="endpoint-line"></div>${endpoints[1] ? placeBox(endpoints[1], 'B') : '<div class="empty-place"><span>B</span>再选一个目的地</div>'}</div>${endpoints.length === 2 ? `<div class="distance-result"><span class="tiny-label">沿地表的最短距离 · WGS84</span><div><strong>${formatKm(distanceKm(endpoints[0], endpoints[1]))}</strong><span>公里</span></div><p>球面上的路线，看起来是一条弧线。</p></div><div class="button-row"><button class="primary" data-action="fit-route">同时看两点 ↗</button><button class="secondary" data-action="reset-route">重新选点</button></div><p class="accuracy-note">按 WGS84 椭球测地线计算，不是驾车里程，也不计山路起伏。地点坐标代表城市参考点。</p>` : '<div class="tip"><span>试试看</span><p>选两个很远的城市，看看连线怎么绕过地球。</p></div>'}`;
   } else if (mode === 'antipode') {
@@ -46,10 +75,11 @@ function render() {
 function syncGlobe() {
   if (!globe) return;
   globe.setQuakesVisible(mode === 'earthquakes');
+  globe.showLandmarks([]);
   if (mode === 'earthquakes') globe.showPlaces(chosenQuake ? [chosenQuake] : []);
   else if (mode === 'distance') globe.showPlaces(endpoints, 'distance');
   else if (mode === 'antipode' && current && opposite) globe.showPlaces([current, opposite], 'antipode');
-  else globe.showPlaces(current ? [current] : []);
+  else { globe.showPlaces(current ? [current] : []); globe.showLandmarks(guide?.landmarks ?? nearby); }
 }
 const headings: Record<Mode, [string, string]> = {
   explore: ['一颗星球，无数个为什么', '出发，去看看。'],
@@ -71,6 +101,7 @@ function setMode(next: Mode) {
 function choosePlace(place: Place, fly = true) {
   if (!land || !globe) return;
   current = place;
+  resetCityInfo(place);
   if (mode === 'distance') {
     if (endpoints.length === 2) { endpoints = []; toast('开始一次新的测量，已选好起点 A。'); }
     endpoints.push(place);
@@ -84,7 +115,7 @@ function choosePlace(place: Place, fly = true) {
 }
 function chooseQuake(id: string) {
   const q = earthquakeData?.events.find(event => event.id === id); if (!q || !globe) return;
-  chosenQuake = q; current = q; globe.showPlaces([q]); globe.fly(q, 2_400_000); render();
+  chosenQuake = q; current = q; resetCityInfo(q); globe.showPlaces([q]); globe.fly(q, 2_400_000); render();
 }
 async function refreshQuakes() {
   if (fetchingQuakes) return;
@@ -103,7 +134,7 @@ function showSuggestions() {
   results.hidden = !$<HTMLInputElement>('#search').value.trim();
 }
 function renderSources() {
-  $('#sources-content').innerHTML = `<p class="body-copy">位置和数值来自公开数据或地理计算。图层会显示来源，离线快照会标出日期。当前城市库与海陆边界可在本地读取。</p><div class="source-row"><span>地名与坐标</span><strong>GeoNames · CC BY 4.0</strong><p>${cities.length.toLocaleString('zh-CN')} 条城市记录，中英文别名；城市坐标是参考点。</p><a href="https://www.geonames.org/export/" target="_blank" rel="noopener noreferrer">查看来源 ↗</a></div><div class="source-row"><span>海陆与概览底图</span><strong>Natural Earth · Public domain</strong><p>海陆判断采用 1:5000 万陆地边界；本地底图来自 Cesium 随附的 Natural Earth II。近岸、小岛、内陆水体可能存在误差；底图明暗是地形晕渲，不是实时光照。</p><a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener noreferrer">查看来源 ↗</a></div><div class="source-row"><span>地表距离与地球对面</span><strong>WGS84 · GeographicLib</strong><p>距离是椭球测地线长度；对跖点为纬度取反、经度相差 180°。两者都是计算结果。</p><a href="https://geographiclib.sourceforge.io/" target="_blank" rel="noopener noreferrer">查看算法 ↗</a></div><div class="source-row"><span>地震观测</span><strong>USGS · M2.5+ 七天记录</strong><p>在线获取失败时读取真实快照。快照生成：${manifest?.sources.find(s => s.id === 'earthquakes')?.generatedAt ? dateTime(manifest.sources.find(s => s.id === 'earthquakes')!.generatedAt!) : '请查看快照元数据'}（北京时间）。记录存在延迟、修订和覆盖差异。</p><a href="https://earthquake.usgs.gov/earthquakes/feed/v1.0/geojson.php" target="_blank" rel="noopener noreferrer">查看来源 ↗</a></div><div class="source-row"><span>在线街道与卫星图层</span><strong>OpenStreetMap / NASA GIBS</strong><p>街道数据 © OpenStreetMap contributors，采用 ODbL；NASA 卫星图层为所选日期的 MODIS Terra 真彩色观测，可能有云和缺测。均需联网，精度随来源变化。</p><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OSM 授权 ↗</a> · <a href="https://nasa-gibs.github.io/gibs-api-docs/" target="_blank" rel="noopener noreferrer">NASA GIBS ↗</a></div><p class="accuracy-note">数据包准备日期：${manifest ? shortDate(manifest.preparedAt) : '加载中'}。第一版使用椭球表面；山地立体高程、地球剖面和天文图层将在后续版本加入。摄像头画面仅在本机识别，不保存、不上传。</p>`;
+  $('#sources-content').innerHTML = `<p class="body-copy">位置和数值来自公开数据或地理计算。图层会显示来源，离线快照会标出日期。当前城市库与海陆边界可在本地读取。</p><div class="source-row"><span>地名与坐标</span><strong>GeoNames · CC BY 4.0</strong><p>${cities.length.toLocaleString('zh-CN')} 条城市记录，中英文别名；城市坐标是参考点。</p><a href="https://www.geonames.org/export/" target="_blank" rel="noopener noreferrer">查看来源 ↗</a></div><div class="source-row"><span>海陆与概览底图</span><strong>Natural Earth · Public domain</strong><p>海陆判断采用 1:5000 万陆地边界；本地底图来自 Cesium 随附的 Natural Earth II。近岸、小岛、内陆水体可能存在误差；底图明暗是地形晕渲，不是实时光照。</p><a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener noreferrer">查看来源 ↗</a></div><div class="source-row"><span>城市简介与景点</span><strong>Wikipedia 贡献者 · CC BY-SA 4.0</strong><p>六座起步城市提供有来源的本地介绍及景点坐标。其他位置可主动查询附近百科条目；网络不可用时明确提示。人物视频的两种布局均在本机显示。</p><a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer">内容授权 ↗</a></div><div class="source-row"><span>地表距离与地球对面</span><strong>WGS84 · GeographicLib</strong><p>距离是椭球测地线长度；对跖点为纬度取反、经度相差 180°。两者都是计算结果。</p><a href="https://geographiclib.sourceforge.io/" target="_blank" rel="noopener noreferrer">查看算法 ↗</a></div><div class="source-row"><span>地震观测</span><strong>USGS · M2.5+ 七天记录</strong><p>在线获取失败时读取真实快照。快照生成：${manifest?.sources.find(s => s.id === 'earthquakes')?.generatedAt ? dateTime(manifest.sources.find(s => s.id === 'earthquakes')!.generatedAt!) : '请查看快照元数据'}（北京时间）。记录存在延迟、修订和覆盖差异。</p><a href="https://earthquake.usgs.gov/earthquakes/feed/v1.0/geojson.php" target="_blank" rel="noopener noreferrer">查看来源 ↗</a></div><div class="source-row"><span>在线街道与卫星图层</span><strong>OpenStreetMap / NASA GIBS</strong><p>街道数据 © OpenStreetMap contributors，采用 ODbL；NASA 卫星图层为所选日期的 MODIS Terra 真彩色观测，可能有云和缺测。均需联网，精度随来源变化。</p><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OSM 授权 ↗</a> · <a href="https://nasa-gibs.github.io/gibs-api-docs/" target="_blank" rel="noopener noreferrer">NASA GIBS ↗</a></div><p class="accuracy-note">数据包准备日期：${manifest ? shortDate(manifest.preparedAt) : '加载中'}。第一版使用椭球表面；山地立体高程、地球剖面和天文图层将在后续版本加入。摄像头画面仅在本机识别，不保存、不上传。</p>`;
 }
 
 render();
@@ -116,10 +147,24 @@ $('#panel-content').addEventListener('click', event => {
   const button = (event.target as HTMLElement).closest<HTMLElement>('button'); if (!button) return;
   if (button.dataset.query) { $<HTMLInputElement>('#search').value = button.dataset.query; showSuggestions(); if (suggestions[0]) choosePlace(cityPlace(suggestions[0])); }
   if (button.dataset.quake) chooseQuake(button.dataset.quake);
+  if (button.dataset.landmark !== undefined) {
+    const spot = (guide?.landmarks ?? nearby)[Number(button.dataset.landmark)];
+    if (spot) { selectedLandmark = spot; globe?.fly(spot, 5500); $<HTMLSelectElement>('#layer').value = 'streets'; void switchLayer(); render(); }
+  }
   switch (button.dataset.action) {
     case 'look-opposite': setMode('antipode'); break;
     case 'use-start': if (current) { endpoints = [current]; setMode('distance'); } break;
-    case 'fly-close': if (current) globe?.fly(current, 65000); break;
+    case 'fly-close': if (current) { globe?.fly(current, 35000); $<HTMLSelectElement>('#layer').value = 'streets'; void switchLayer(); } break;
+    case 'load-nearby': {
+      if (!current || nearbyState === 'loading') break;
+      articleRequest?.abort(); const request = new AbortController(); articleRequest = request;
+      nearbyState = 'loading'; render();
+      void nearbyArticles(referenceCity ?? current, request.signal).then(points => {
+        if (articleRequest !== request || request.signal.aborted) return;
+        nearby = points; nearbyState = 'done'; render(); syncGlobe();
+      }).catch(() => { if (articleRequest === request && !request.signal.aborted) { nearbyState = 'done'; render(); } });
+      break;
+    }
     case 'reset-route': endpoints = []; syncGlobe(); render(); break;
     case 'fit-route': globe?.fitPlaces(endpoints); break;
     case 'reveal-opposite': if (opposite) globe?.fly(opposite, 5_000_000, 2.3); break;
@@ -146,16 +191,37 @@ const dialog = $<HTMLDialogElement>('#sources-dialog');
 $('#sources-button').addEventListener('click', () => { renderSources(); dialog.showModal(); });
 $('#sources-close').addEventListener('click', () => dialog.close());
 dialog.addEventListener('click', event => { if (event.target === dialog) { const r = dialog.getBoundingClientRect(); if (event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom) dialog.close(); } });
+const presentation = new CameraPresentation($('#app'), $<HTMLVideoElement>('#camera-video'), $<HTMLVideoElement>('#camera-background-video'), $('#camera-backdrop'));
+function cameraPointer(x: number, y: number) {
+  const canvas = globe!.canvas.getBoundingClientRect();
+  const video = $<HTMLVideoElement>('#camera-background-video');
+  if ($('#app').classList.contains('camera-background') && video.videoWidth && video.videoHeight) {
+    const frame = video.getBoundingClientRect();
+    const point = coverPoint(x, y, video.videoWidth, video.videoHeight, frame.width, frame.height);
+    return { x: frame.left + point.x, y: frame.top + point.y };
+  }
+  return { x: canvas.left + x * canvas.width, y: canvas.top + y * canvas.height };
+}
+$('#camera-layout').addEventListener('change', () => {
+  const background = $<HTMLSelectElement>('#camera-layout').value === 'background';
+  presentation.setLayout(background ? 'background' : 'window');
+  $('#opacity-control').hidden = !background;
+  $('#camera-layout-hint').textContent = background ? '人物在背景，地球悬浮在前方' : '开启手势后显示人物画面';
+});
+$('#earth-opacity').addEventListener('input', () => $('#app').style.setProperty('--earth-opacity', String(Number($<HTMLInputElement>('#earth-opacity').value) / 100)));
 const gestures = new GestureController($<HTMLVideoElement>('#camera-video'), action => {
   if (!globe) return;
   if (action.type === 'rotate') globe.rotate(action.dx, action.dy);
   if (action.type === 'zoom') globe.zoom(action.amount);
-  if (action.type === 'click') globe.pick(action.x * globe.canvas.clientWidth, action.y * globe.canvas.clientHeight);
-}, text => { $('#gesture-status').textContent = text; }, (x, y) => {
+  if (action.type === 'click') {
+    const point = cameraPointer(action.x, action.y), rect = globe.canvas.getBoundingClientRect();
+    if (point.x >= rect.left && point.x <= rect.right && point.y >= rect.top && point.y <= rect.bottom) globe.pick(point.x - rect.left, point.y - rect.top);
+  }
+}, text => { $('#gesture-status').textContent = text; presentation.sync(); }, (x, y) => {
   const cursor = $('#hand-cursor'); cursor.hidden = x === undefined || y === undefined;
-  if (x !== undefined && y !== undefined && globe) { const r = globe.canvas.getBoundingClientRect(); cursor.style.left = `${r.left + x * r.width}px`; cursor.style.top = `${r.top + y * r.height}px`; }
+  if (x !== undefined && y !== undefined && globe) { const point = cameraPointer(x, y); cursor.style.left = `${point.x}px`; cursor.style.top = `${point.y}px`; }
 }, message => { stopCamera(); toast(message); });
-function stopCamera() { gestures.stop(); cameraOn = false; $('#camera-panel').hidden = true; $('#camera-button').innerHTML = '<span>✋</span> 开启手势'; $('#camera-button').classList.remove('enabled'); }
+function stopCamera() { gestures.stop(); presentation.clear(); cameraOn = false; $('#camera-panel').hidden = true; $('#camera-button').innerHTML = '<span>✋</span> 开启手势'; $('#camera-button').classList.remove('enabled'); }
 $('#camera-button').addEventListener('click', async () => {
   if (cameraOn) { stopCamera(); return; }
   cameraOn = true; $('#camera-panel').hidden = false; $('#camera-button').textContent = '手势已开启'; $('#camera-button').classList.add('enabled');
@@ -165,7 +231,7 @@ $('#camera-button').addEventListener('click', async () => {
 $('#camera-stop').addEventListener('click', stopCamera); window.addEventListener('pagehide', stopCamera);
 async function initialize() {
   try {
-    globe = new Globe('globe', (place, quakeId) => { if (quakeId && mode === 'earthquakes') chooseQuake(quakeId); else choosePlace(place, false); });
+    globe = new Globe('globe', (place, quakeId) => { if (quakeId?.startsWith('landmark:') && mode === 'explore') { const spot = (guide?.landmarks ?? nearby)[Number(quakeId.slice(9))]; if (spot) { selectedLandmark = spot; globe?.fly(spot, 5500); $<HTMLSelectElement>('#layer').value = 'streets'; void switchLayer(); render(); } } else if (quakeId && mode === 'earthquakes') chooseQuake(quakeId); else choosePlace(place, false); });
     const [geography] = await Promise.all([loadGeography(), globe.initialize()]);
     cities = geography.cities; land = geography.land; manifest = geography.manifest;
     $<HTMLInputElement>('#search').disabled = false; $('#globe-loading').hidden = true; render();

@@ -13,3 +13,5 @@ PalmPlanet includes or uses the following independently licensed software and da
 - **NASA GIBS / MODIS Terra** — NASA Earth science imagery via https://gibs.earthdata.nasa.gov/. Attribution and selected observation date are shown when the layer is active. No NASA logos or endorsement are implied.
 
 Vite, TypeScript, tsx and Node type declarations are development dependencies. Their licenses are included in their npm distributions and recorded through `package-lock.json`.
+
+City guides and nearby encyclopedia text: Wikipedia contributors, CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/). Short Chinese starter descriptions are adapted and summarized, and landmark coordinates are transcribed from the individually linked articles. Each article/source link is retained in the guide data and UI. Retrieved nearby extracts remain original text, with their article links and attribution. No Wikipedia photographs are bundled.

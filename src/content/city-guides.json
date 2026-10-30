@@ -1,0 +1,145 @@
+[
+  {
+    "cityId": 1816670,
+    "name": "北京",
+    "lat": 39.9075,
+    "lon": 116.39723,
+    "summary": "中国的首都。可以从宫殿、坛庙和城市街道，认识古老建筑与现代城市怎样相处。",
+    "url": "https://en.wikipedia.org/wiki/Beijing",
+    "checkedAt": "2026-10-30",
+    "landmarks": [
+      {
+        "name": "故宫",
+        "lat": 39.91583,
+        "lon": 116.39083,
+        "summary": "明清时期的皇家宫殿，如今可以在这里认识宫殿建筑与历史。",
+        "url": "https://en.wikipedia.org/wiki/Forbidden_City"
+      },
+      {
+        "name": "天坛",
+        "lat": 39.8822,
+        "lon": 116.4066,
+        "summary": "古代祭天的建筑群，圆形建筑与周围空间很值得观察。",
+        "url": "https://en.wikipedia.org/wiki/Temple_of_Heaven"
+      }
+    ]
+  },
+  {
+    "cityId": 1796236,
+    "name": "上海",
+    "lat": 31.22222,
+    "lon": 121.45806,
+    "summary": "中国长江入海口附近的大城市。沿着黄浦江，可以比较江两岸的建筑与城市景观。",
+    "url": "https://en.wikipedia.org/wiki/Shanghai",
+    "checkedAt": "2026-10-30",
+    "landmarks": [
+      {
+        "name": "外滩",
+        "lat": 31.238028,
+        "lon": 121.486139,
+        "summary": "黄浦江沿岸的滨水地带，可以从这里观察江对岸的城市天际线。",
+        "url": "https://en.wikipedia.org/wiki/The_Bund"
+      },
+      {
+        "name": "东方明珠",
+        "lat": 31.2416694,
+        "lon": 121.4947167,
+        "summary": "位于浦东的广播电视塔，球形结构让它很容易辨认。",
+        "url": "https://en.wikipedia.org/wiki/Oriental_Pearl_Tower"
+      }
+    ]
+  },
+  {
+    "cityId": 1850147,
+    "name": "东京",
+    "lat": 35.6895,
+    "lon": 139.69171,
+    "summary": "日本的首都，位于本州岛。这里既有密集的现代街区，也有历史悠久的寺院。",
+    "url": "https://en.wikipedia.org/wiki/Tokyo",
+    "checkedAt": "2026-10-30",
+    "landmarks": [
+      {
+        "name": "东京塔",
+        "lat": 35.65861,
+        "lon": 139.74556,
+        "summary": "用于广播通信和观景的塔。试着在街道地图上找到它周围的公园。",
+        "url": "https://en.wikipedia.org/wiki/Tokyo_Tower"
+      },
+      {
+        "name": "浅草寺",
+        "lat": 35.71472,
+        "lon": 139.79675,
+        "summary": "东京浅草地区的古老佛教寺院，有大门、殿堂和塔。",
+        "url": "https://en.wikipedia.org/wiki/Sensō-ji"
+      }
+    ]
+  },
+  {
+    "cityId": 2643743,
+    "name": "伦敦",
+    "lat": 51.50853,
+    "lon": -0.12574,
+    "summary": "英国的首都，泰晤士河穿城而过。沿着河流，可以寻找桥梁与历史建筑。",
+    "url": "https://en.wikipedia.org/wiki/London",
+    "checkedAt": "2026-10-30",
+    "landmarks": [
+      {
+        "name": "伦敦塔",
+        "lat": 51.50806,
+        "lon": -0.07611,
+        "summary": "泰晤士河边的历史城堡建筑群，也是世界遗产。",
+        "url": "https://en.wikipedia.org/wiki/Tower_of_London"
+      }
+    ]
+  },
+  {
+    "cityId": 2147714,
+    "name": "悉尼",
+    "lat": -33.86785,
+    "lon": 151.20732,
+    "summary": "澳大利亚东海岸的港湾城市。港湾、桥梁和表演建筑，组成了很有辨识度的城市景观。",
+    "url": "https://en.wikipedia.org/wiki/Sydney",
+    "checkedAt": "2026-10-30",
+    "landmarks": [
+      {
+        "name": "悉尼歌剧院",
+        "lat": -33.85681,
+        "lon": 151.21514,
+        "summary": "港湾边的表演艺术建筑，屋顶像一组展开的帆。",
+        "url": "https://en.wikipedia.org/wiki/Sydney_Opera_House"
+      },
+      {
+        "name": "悉尼海港大桥",
+        "lat": -33.85222,
+        "lon": 151.21056,
+        "summary": "跨越悉尼港的钢拱桥，可以在地图上找一找桥的两端。",
+        "url": "https://en.wikipedia.org/wiki/Sydney_Harbour_Bridge"
+      }
+    ]
+  },
+  {
+    "cityId": 2988507,
+    "name": "巴黎",
+    "lat": 48.85341,
+    "lon": 2.3488,
+    "summary": "法国的首都，塞纳河穿过市区。可以沿河探索桥梁、博物馆和城市地标。",
+    "url": "https://en.wikipedia.org/wiki/Paris",
+    "checkedAt": "2026-10-30",
+    "landmarks": [
+      {
+        "name": "埃菲尔铁塔",
+        "lat": 48.858222,
+        "lon": 2.2945,
+        "summary": "由金属框架构成的塔，是认识大型结构的一个有趣例子。",
+        "url": "https://en.wikipedia.org/wiki/Eiffel_Tower"
+      },
+      {
+        "name": "卢浮宫",
+        "lat": 48.8611,
+        "lon": 2.3358,
+        "summary": "位于塞纳河附近的博物馆，收藏和展示不同时代的艺术作品。",
+        "url": "https://en.wikipedia.org/wiki/Louvre"
+      }
+    ]
+  }
+]

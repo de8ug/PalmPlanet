@@ -7,6 +7,7 @@ export type Layer = 'earth' | 'streets' | 'satellite';
 export class Globe {
   viewer: C.Viewer;
   private marks = new C.CustomDataSource('exploration');
+  private landmarks = new C.CustomDataSource('landmarks');
   private quakes = new C.CustomDataSource('earthquakes');
   private overlay?: C.ImageryLayer;
   private layerGeneration = 0;
@@ -30,6 +31,7 @@ export class Globe {
     this.viewer.resolutionScale = Math.min(window.devicePixelRatio, 1.6);
     this.viewer.dataSources.add(this.marks);
     this.viewer.dataSources.add(this.quakes);
+    this.viewer.dataSources.add(this.landmarks);
     // Avoid the default double-click zoom competing with point selection.
     this.viewer.screenSpaceEventHandler.removeInputAction(C.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
     this.viewer.screenSpaceEventHandler.setInputAction((event: { position: C.Cartesian2 }) => this.pick(event.position.x, event.position.y), C.ScreenSpaceEventType.LEFT_CLICK);
@@ -86,6 +88,13 @@ export class Globe {
         } });
     }
   }
+  showLandmarks(places: Place[]) {
+    this.landmarks.entities.removeAll();
+    places.forEach((p, i) => this.landmarks.entities.add({ id: `landmark:${i}`, position: C.Cartesian3.fromDegrees(p.lon, p.lat, 100),
+      point: { pixelSize: 9, color: C.Color.fromCssColorString('#78d9c4'), outlineColor: C.Color.WHITE, outlineWidth: 2 },
+      label: { text: p.name, font: '13px sans-serif', fillColor: C.Color.WHITE, outlineColor: C.Color.BLACK, outlineWidth: 3, style: C.LabelStyle.FILL_AND_OUTLINE, pixelOffset: new C.Cartesian2(0, -18), distanceDisplayCondition: new C.DistanceDisplayCondition(0, 500000) }
+    }));
+  }
   setQuakesVisible(visible: boolean) { this.quakes.show = visible; }
   async setLayer(layer: Layer, date: string, onError: () => void) {
     const generation = ++this.layerGeneration;
@@ -117,7 +126,7 @@ export class Globe {
     if (!point) return;
     const cartographic = C.Cartographic.fromCartesian(point);
     this.onPick({ name: '选中的位置', lat: C.Math.toDegrees(cartographic.latitude), lon: C.Math.toDegrees(cartographic.longitude) },
-      typeof entity?.id === 'string' && entity.id.startsWith('quake:') ? entity.id.slice(6) : undefined);
+      typeof entity?.id === 'string' && entity.id.startsWith('quake:') ? entity.id.slice(6) : typeof entity?.id === 'string' && entity.id.startsWith('landmark:') ? entity.id : undefined);
   }
   rotate(dx: number, dy: number) {
     this.viewer.camera.cancelFlight();
