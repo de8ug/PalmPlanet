@@ -1,9 +1,91 @@
-# PalmPlanet project instructions
+# PalmPlanet 智能体协作指南
 
-- Develop this standalone application without modifying earlier experiments in the parent collection.
-- Keep all geographic numbers grounded in sourced records or documented calculations. Label snapshots, dates, accuracy limits and scientific models.
-- Do not add personal identity, schools, family locations, photos, voice or account data.
-- Camera frames must stay on device. Keep camera opt-in, stop tracks on exit, and preserve mouse access.
-- Run `npm test` and `npm run build` for behavior changes. Test interface changes in a browser.
-- Update data provenance and third-party notices when adding sources. Do not confuse open data licenses with unlimited hosted API access.
-- Source-code synchronization to de8ug/PalmPlanet is authorized. Website deployment requires a separate user request.
+本文件是不同编码智能体进入项目时的共同入口，适用于整个 PalmPlanet 仓库。用户的明确要求优先；工具权限和适用的上级目录约定仍需遵守。
+
+## 项目目标与范围
+
+掌心星球是面向亲子探索的浏览器地球，以真实公开数据支撑地点搜索、测距、对跖点、城市景点和地震探索，支持可选的本机摄像头手势与全息背景。
+
+- 以孩子的探索问题和操作体验决定功能范围，保持文字简单、来源清楚、鼠标可用。
+- 这是独立 Git 仓库。修改限定在 PalmPlanet 内，保留父目录里的既有儿童实验。父集合中旧实验的暂停状态，不改变用户已授权的 PalmPlanet 开发任务。
+- 源码同步到 `de8ug/PalmPlanet` 已获授权；网站部署、儿童素材上传或公开展示需要对应的用户授权。
+- 不自动启动 HaoStory、其他项目协调或额外功能开发。
+
+## 接手任务前
+
+1. 阅读本文件、`README.md`；涉及数据时再读 `DATA_SOURCES.md` 和 `THIRD_PARTY_NOTICES.md`。
+2. 检查 `git status --short`、当前分支和最近提交，识别已有工作与用户未提交的修改，不覆盖或清理他人的改动。
+3. 阅读相关的 `docs/plans/` 计划和 `docs/verification.md`。历史计划描述意图，验证记录描述当时证据，当前实现以代码为准。
+4. 修改界面前打开现有页面，阅读相关 HTML、样式和事件处理代码。先复现问题或明确本次功能的验收方式。
+5. 多步任务在 `docs/plans/YYYY-MM-DD-<topic>.md` 记录范围、涉及文件、数据与验证方式；简单修正文档无需另写计划。
+
+## 代码导航与分工边界
+
+| 领域 | 主要文件 | 协作注意点 |
+| --- | --- | --- |
+| 页面与交互集成 | `index.html`、`src/main.ts`、`src/style.css` | 这些是共享文件，集中由一名集成负责人编辑，避免并行改动大段模板与事件逻辑。 |
+| 地球显示与图层 | `src/globe.ts` | 封装 Cesium、标记、镜头和图层；外部模块通过明确的方法调用。 |
+| 地理算法与类型 | `src/geo.ts`、`src/types.ts` | 修改坐标约定或公共类型前，先通知依赖该接口的协作者。 |
+| 地震与基础数据读取 | `src/data.ts`、`scripts/`、`public/data/` | 保持超时、快照标识和数据来源；避免与其他任务同时刷新快照。 |
+| 城市与景点 | `src/city-guides.ts`、`src/content/city-guides.json` | 区分本地城市介绍与附近百科结果，保留城市身份、来源链接及日期。 |
+| 手势与人物画面 | `src/gesture-math.ts`、`src/gestures.ts`、`src/camera-presentation.ts` | 区分手势状态、摄像头生命周期与显示布局，切换布局复用同一视频流。 |
+| 验证 | `tests/*.test.ts`、`tests/browser/` | 单元测试验证行为；浏览器诊断页供人工检查，不作为产品入口。 |
+
+## 多智能体协作约定
+
+- 只有在用户或适用运行规则允许时才并行委派。使用不同工具或模型并不自动扩大任务权限。
+- 分工时明确：任务目标、负责文件、输入输出接口、验收方式、依赖任务，以及谁负责最终集成与 Git 同步。
+- 每个文件在同一阶段尽量只有一名编辑者。若必须修改他人负责的文件，先协调编辑顺序；公共文件的改动由集成负责人收敛。
+- 新建工作分支默认使用 `codex/<topic>`。有可用条件时用独立工作树隔离并行任务；共享目录中不要擅自切分支、重置文件或清理未跟踪文件。
+- 需要改公共接口时，先写清类型、参数、返回值和异常行为。提交后交代受影响的调用方，不能只让自己的模块通过检查。
+- 依赖安装、锁文件更新和数据下载由一人执行，避免多个任务同时改 `package-lock.json` 或生成同一数据文件。
+- 每次提交仅包含本任务文件。提交前查看差异；同步到约定的远端分支，不强推、不覆盖他人的提交。继续沿用用户已授权的同步方式，无需为例行源码推送重复确认。
+- 集成负责人负责检查模块衔接、运行整体验证，并报告尚未验证的部分；子任务完成不等于整个功能完成。
+
+## 数据与隐私底线
+
+- 地理数值必须来自可追溯的记录或明确算法。区分观测记录、计算结果、科学模型和视觉示意，不把缺失数据填成虚构事实。
+- 保留来源、授权、检索或观测时间、精度限制；新增来源同步更新数据说明和第三方声明。开放数据不等于无限量免费在线服务。
+- 坐标采用明确的纬度、经度字段。地图选点保留原坐标，附近城市仅作参考；同名城市不能只按名称匹配。
+- 网络请求要有失败提示；可用时读取带日期的真实快照。异步结果应校验当前选择或支持取消，避免旧请求覆盖新地点。
+- 外部文本与链接视为不可信输入，显示前转义，验证链接协议、域名及坐标范围。
+- 不加入儿童完整身份、学校、位置、联系信息、账号、私人照片、声音或家庭细节。
+- 摄像头由用户主动开启，图像留在本机，不录制、不上传；退出或失败后停止媒体轨道并清理两处视频显示。保持麦克风和定位权限关闭，保留鼠标操作。
+- 界面验证优先使用合成视频。含真人的截图、录像或其他儿童素材不得提交到 Git 或用于公开演示，除非获得明确授权并完成脱敏。
+
+## 运行与验证
+
+在仓库根目录使用 Node.js 22.12+：
+
+```sh
+npm ci                 # 缺少依赖或需要按锁文件重装时
+npm run dev            # 本机开发
+npm test               # 行为测试
+npm run build          # TypeScript 检查与正式打包
+npm run preview        # 查看正式打包后的页面
+```
+
+- 修改行为后运行 `npm test` 和 `npm run build`；修改界面后进行浏览器验证。纯文档修改检查差异、引用路径与命令是否正确即可。
+- 为关键行为和真实边界补测试，例如日期变更线、同名城市、失联快照、异步切换和手势跟踪丢失；不添加只重复实现细节的测试。
+- 城市功能检查搜索、资料来源、景点定位和无资料状态；摄像头功能检查小窗/背景切换、指针映射、失去跟踪及关闭后的清理。
+- `tests/browser/hand-model.html` 和 `tests/browser/camera-layout.html` 通过开发服务使用，可验证模型或合成视频，不需要拍摄真人。
+- `public/vendor/`、`dist/` 和 `node_modules/` 是生成内容，不手工修改或提交。运行资源由 Vite 配置从依赖复制。
+- 数据刷新使用 `npm run data:refresh`，仅在任务需要时执行；核对变化和 `public/data/manifest.json` 后再提交。
+- 在 `docs/verification.md` 记录日期、执行过的检查、结果与未覆盖范围。构建成功、合成视频成功、真人手势成功是不同证据，不能混称全部已验证。
+
+## 交接格式
+
+同一任务内可在协作消息中交接；跨会话或长任务可写入 `docs/handoffs/YYYY-MM-DD-<topic>.md`。不要在交接中保存密钥、私人位置或摄像头画面。
+
+```text
+任务与当前状态：
+分支 / 已提交的 commit：
+负责及修改的文件：
+接口或数据变化：
+已执行的验证及结果：
+尚未验证 / 已知问题：
+下一步、依赖与需交接的文件：
+本机预览地址及服务是否仍在运行：
+```
+
+完成报告说明实际交付、验证证据、重要限制及 Git 同步结果。未实际运行的检查和未实际推送的代码要明确标注。
