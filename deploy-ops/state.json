@@ -6,13 +6,13 @@
   "source_path": "/Users/howie/Documents/ChatGPT/嘟嘟AI开发/PalmPlanet/hao-copybook",
   "url": "https://g3c6t60xrchve.space.mcode.cn",
   "node_id": "463688691769509",
-  "last_deployed_sha": "d53e08a38e91edb3b6fbbeda411d2d5066bf3721",
-  "last_deployed_at": "2026-11-16T00:01:25+08:00",
+  "last_deployed_sha": "fcb4166db5e3f907ac9a99dd4ab30622c38ce70c",
+  "last_deployed_at": "2026-11-16T01:14:59+08:00",
   "monitor": {
     "schedule": "0 10 */3 * *",
     "timezone": "Asia/Shanghai",
     "cron_id": "780e31a8-df86-4ea3-af9c-aef78d45df6b",
     "note": "每 3 天 10:00 检查远端 main；有更新则用同一 node_id 原地更新，URL 不变"
   },
-  "last_deployed_note": "首版 + 追加 d53e08a（一年级复习字帖下载），同一 node_id 原地更新"
+  "last_deployed_note": "同步 fcb4166：新增第2/3/4册可编辑预设（站��生成），移除预生成 downloads/*.pdf；同一 node_id 原地更新"
 }
